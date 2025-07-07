@@ -1,23 +1,14 @@
 <template>
-  <div class="w-full h-[32rem] relative flex flex-col items-center justify-center bg-gray-100">
-    <!-- Graph -->
-    <svg
-      ref="svgRef"
-      class="w-full h-full max-h-[32rem]"
-    ></svg>
+  <div class="w-full h-[40rem] relative flex flex-col items-center justify-center bg-gray-100">
+    <!-- Graph SVG -->
+    <svg ref="svgRef" class="w-full h-full max-h-[32rem]"></svg>
 
     <!-- Controls -->
     <div class="mt-4 flex gap-4">
-      <button
-        @click="prevStep"
-        class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-      >
+      <button @click="prevStep" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
         Previous
       </button>
-      <button
-        @click="nextStep"
-        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-      >
+      <button @click="nextStep" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
         Next
       </button>
     </div>
@@ -117,6 +108,7 @@ function prevStep() {
 }
 
 onMounted(() => {
+  // Graph data
   nodes = [
     { id: '1' }, { id: '2' }, { id: '3' }, { id: '4' },
     { id: '5' }, { id: '6' }, { id: '7' }, { id: '8' },
@@ -137,7 +129,7 @@ onMounted(() => {
     { source: '11', target: '12' }
   ]
 
-  // Undirected adjacency list
+  // Build adjacency list (undirected)
   for (const link of links) {
     const [a, b] = [link.source, link.target]
     if (!adjList[a]) adjList[a] = []
@@ -146,24 +138,31 @@ onMounted(() => {
     adjList[b].push(a)
   }
 
+  // Select SVG and get size
   const svg = d3.select(svgRef.value)
   const { width, height } = svgRef.value.getBoundingClientRect()
+
+  // Add zoom support
+  const zoomGroup = svg.append('g').attr('class', 'zoom-group')
+  svg.call(d3.zoom().on('zoom', (event) => {
+    zoomGroup.attr('transform', event.transform)
+  }))
 
   simulation = d3.forceSimulation(nodes)
     .force('link', d3.forceLink(links).id(d => d.id).distance(100))
     .force('charge', d3.forceManyBody().strength(-300))
     .force('center', d3.forceCenter(width / 2, height / 2))
 
-  // Edges
-  svg.append('g')
+  // Draw links
+  zoomGroup.append('g')
     .attr('stroke', '#aaa')
     .selectAll('line')
     .data(links)
     .join('line')
     .attr('stroke-width', 2)
 
-  // Nodes
-  nodeEls = svg.append('g')
+  // Draw nodes
+  nodeEls = zoomGroup.append('g')
     .attr('stroke', '#fff')
     .attr('stroke-width', 1.5)
     .selectAll('circle')
@@ -178,8 +177,8 @@ onMounted(() => {
       highlightStep(bfsSteps.value[0])
     })
 
-  // Labels
-  labelEls = svg.append('g')
+  // Draw labels
+  labelEls = zoomGroup.append('g')
     .selectAll('text')
     .data(nodes)
     .join('text')
@@ -189,7 +188,7 @@ onMounted(() => {
     .attr('dy', '.35em')
 
   simulation.on('tick', () => {
-    svg.selectAll('line')
+    zoomGroup.selectAll('line')
       .attr('x1', d => d.source.x)
       .attr('y1', d => d.source.y)
       .attr('x2', d => d.target.x)
@@ -203,6 +202,22 @@ onMounted(() => {
       .attr('x', d => d.x)
       .attr('y', d => d.y)
   })
+
+  // After a short delay, fit the graph to view
+  setTimeout(() => {
+    const bounds = zoomGroup.node().getBBox()
+    const fullWidth = svgRef.value.clientWidth
+    const fullHeight = svgRef.value.clientHeight
+
+    const scale = 0.9 / Math.max(bounds.width / fullWidth, bounds.height / fullHeight)
+    const translateX = (fullWidth - bounds.width * scale) / 2 - bounds.x * scale
+    const translateY = (fullHeight - bounds.height * scale) / 2 - bounds.y * scale
+
+    svg.transition().duration(500).call(
+      d3.zoom().transform,
+      d3.zoomIdentity.translate(translateX, translateY).scale(scale)
+    )
+  }, 500)
 
   function drag(simulation) {
     function dragstarted(event, d) {
