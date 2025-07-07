@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full h-[32rem] flex flex-col items-center justify-center bg-gray-100">
+  <div class="w-full h-[32rem] relative flex flex-col items-center justify-center bg-gray-100">
     <!-- Graph -->
     <svg ref="svgRef" class="w-full h-full max-h-[24rem]"></svg>
 
@@ -13,16 +13,35 @@
       </button>
     </div>
     <p class="mt-2 text-sm text-gray-500">Click a node to start BFS traversal</p>
+
+    <!-- Queue Display -->
+    <div class="absolute top-4 left-4 bg-white shadow rounded px-4 py-2 text-sm text-gray-800">
+      <h2 class="font-bold mb-1">Queue</h2>
+      <div class="flex gap-2">
+        <div
+          v-for="id in queueDisplay"
+          :key="id"
+          class="px-2 py-1 bg-blue-100 text-blue-800 rounded"
+        >
+          {{ id }}
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import * as d3 from 'd3'
 
 const svgRef = ref(null)
 const bfsSteps = ref([])
 const currentStep = ref(-1)
+
+const queueDisplay = computed(() => {
+  const step = bfsSteps.value[currentStep.value]
+  return step?.queue || []
+})
 
 let nodes, links, nodeEls, labelEls, simulation, adjList = {}
 
@@ -88,12 +107,13 @@ onMounted(() => {
     { source: '2', target: '5' }
   ]
 
-  // Build adjacency list
+  // Undirected adjacency list (so BFS can move both directions)
   for (const link of links) {
-    const src = link.source
-    const tgt = link.target
-    if (!adjList[src]) adjList[src] = []
-    adjList[src].push(tgt)
+    const [a, b] = [link.source, link.target]
+    if (!adjList[a]) adjList[a] = []
+    if (!adjList[b]) adjList[b] = []
+    adjList[a].push(b)
+    adjList[b].push(a)
   }
 
   const svg = d3.select(svgRef.value)
@@ -139,25 +159,21 @@ onMounted(() => {
     .attr('dy', '.35em')
 
   simulation.on('tick', () => {
-    // Edges
     svg.selectAll('line')
       .attr('x1', d => d.source.x)
       .attr('y1', d => d.source.y)
       .attr('x2', d => d.target.x)
       .attr('y2', d => d.target.y)
 
-    // Node positions
     nodeEls
       .attr('cx', d => d.x)
       .attr('cy', d => d.y)
 
-    // Label positions
     labelEls
       .attr('x', d => d.x)
       .attr('y', d => d.y)
   })
 
-  // Drag behavior
   function drag(simulation) {
     function dragstarted(event, d) {
       if (!event.active) simulation.alphaTarget(0.3).restart()
