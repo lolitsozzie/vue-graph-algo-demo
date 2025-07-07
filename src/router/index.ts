@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '@views/HomeView.vue';
-import GraphView from '@views/GraphView.vue';
+import BreadthFirstView from '@/views/algorithms/BreadthFirstView.vue';
+import DepthFirst from '@/views/algorithms/DepthFirst.vue';
+import Kahns from '@/views/algorithms/Kahns.vue';
 
 
 const router = createRouter({
@@ -15,9 +17,25 @@ const router = createRouter({
             },
         },
         {
-            path: '/graph',
-            name: 'graph',
-            component: GraphView,
+            path: '/breadth-first',
+            name: 'breadth-first',
+            component: BreadthFirstView,
+            meta: {
+                guest: true,
+            },
+        },
+        {
+            path: '/depth-first',
+            name: 'depth-first',
+            component: DepthFirst,
+            meta: {
+                guest: true,
+            },
+        },
+        {
+            path: '/kahns',
+            name: 'kahns',
+            component: Kahns,
             meta: {
                 guest: true,
             },

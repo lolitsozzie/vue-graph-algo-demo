@@ -8,8 +8,10 @@ const router = useRouter();
 const store = useStore();
 
 const navigation = computed(() => [
-    { name: 'Home', href: '/vue-graph-algo-demo/' },
-    { name: 'Graph', href: '/vue-graph-algo-demo/graph', guest: true },
+    { name: 'About', href: '/vue-graph-algo-demo/' },
+    { name: 'Breadth First', href: '/vue-graph-algo-demo/breadth-first', guest: true },
+    { name: 'Depth First', href: '/vue-graph-algo-demo/depth-first', guest: true },
+    { name: 'Kahn’s Algorithm', href: '/vue-graph-algo-demo/kahns', guest: true },
 ]);
 </script>
 
