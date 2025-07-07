@@ -1,0 +1,33 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.json",
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue", "src/**/*.ts", "src/**/*.json", "tailwind.config.js"],
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "module": "ESNext",
+    "target": "ESNext",
+    "lib": [
+      "DOM", "ESNext"
+    ],
+    "types": [
+      "vite/client"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@components/*": ["src/components/*"],
+      "@services/*": ["src/services/*"],
+      "@views/*": ["src/views/*"]
+    },
+    "preserveValueImports": false,
+    "importsNotUsedAsValues": "remove",
+    "strict": true,
+    "composite": true,
+    "allowJs": true,
+    "noImplicitReturns": true
+  },
+  "references": [
+    {
+      "path": "./tsconfig.config.json"
+    }
+  ]
+}
