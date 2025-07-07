@@ -14,14 +14,25 @@
     </div>
     <p class="mt-2 text-sm text-gray-500">Click a node to start BFS traversal</p>
 
-    <!-- Queue Display -->
-    <div class="absolute top-4 left-4 bg-white shadow rounded px-4 py-2 text-sm text-gray-800">
+    <!-- Queue + Visited Display -->
+    <div class="absolute top-4 left-4 bg-white shadow rounded px-4 py-2 text-sm text-gray-800 max-w-[16rem]">
       <h2 class="font-bold mb-1">Queue</h2>
-      <div class="flex gap-2">
+      <div class="flex gap-2 flex-wrap">
         <div
           v-for="id in queueDisplay"
-          :key="id"
+          :key="'q-' + id"
           class="px-2 py-1 bg-blue-100 text-blue-800 rounded"
+        >
+          {{ id }}
+        </div>
+      </div>
+
+      <h2 class="font-bold mt-4 mb-1">Visited</h2>
+      <div class="flex gap-2 flex-wrap">
+        <div
+          v-for="id in visitedDisplay"
+          :key="'v-' + id"
+          class="px-2 py-1 bg-green-100 text-green-800 rounded"
         >
           {{ id }}
         </div>
@@ -41,6 +52,11 @@ const currentStep = ref(-1)
 const queueDisplay = computed(() => {
   const step = bfsSteps.value[currentStep.value]
   return step?.queue || []
+})
+
+const visitedDisplay = computed(() => {
+  const step = bfsSteps.value[currentStep.value]
+  return step?.visited || []
 })
 
 let nodes, links, nodeEls, labelEls, simulation, adjList = {}
@@ -107,7 +123,7 @@ onMounted(() => {
     { source: '2', target: '5' }
   ]
 
-  // Undirected adjacency list (so BFS can move both directions)
+  // Undirected adjacency list
   for (const link of links) {
     const [a, b] = [link.source, link.target]
     if (!adjList[a]) adjList[a] = []
