@@ -15,29 +15,29 @@ const navigation = computed(() => [
 
 
 <template>
-    <nav class="bg-gray-800 text-white">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-8">
-                <div class="flex items-center">
-                    <span class="ml-3 font-bold text-lg">Graph Demo</span>
-                </div>
-
-                <div class="hidden md:flex space-x-6">
-                    <a
-                        v-for="item in navigation"
-                        :key="item.name"
-                        :href="item.href"
-                        :class="[
-                            'text-sm font-medium hover:text-white',
-                            route.path === item.href ? 'text-white underline' : ''
-                        ]"
-                    >
-                    <div>
-                        {{ item.name }}
-                    </div>
-                    </a>
-                </div>
-            </div>
+  <nav class="bg-gray-800 text-white">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center space-x-8">
+        <div class="flex items-center">
+          <span class="ml-3 font-bold text-lg">Graph Demo</span>
         </div>
-    </nav>
+
+        <div class="hidden md:flex space-x-6">
+          <a
+            v-for="item in navigation"
+            :key="item.name"
+            :href="item.href"
+            :class="[
+    'text-sm font-semibold px-4 py-2 rounded-full transition-colors duration-200',
+    '/vue-graph-algo-demo' + route.path === item.href
+      ? 'bg-gray-200 text-gray-900'
+      : 'bg-gray-700 text-white hover:bg-gray-600 hover:text-white'
+  ]"
+          >
+            {{ item.name }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
 </template>
