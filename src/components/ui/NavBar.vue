@@ -8,8 +8,8 @@ const router = useRouter();
 const store = useStore();
 
 const navigation = computed(() => [
-    { name: 'Home', href: '/' },
-    { name: 'Graph', href: '/graph', guest: true },
+    { name: 'Home', href: '/vue-graph-algo-demo/' },
+    { name: 'Graph', href: '/vue-graph-algo-demo/graph', guest: true },
 ]);
 </script>
 
@@ -19,7 +19,7 @@ const navigation = computed(() => [
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-8">
                 <div class="flex items-center">
-                    <span class="ml-3 font-bold text-lg">OSRS Gamers</span>
+                    <span class="ml-3 font-bold text-lg">Graph Demo</span>
                 </div>
 
                 <div class="hidden md:flex space-x-6">
