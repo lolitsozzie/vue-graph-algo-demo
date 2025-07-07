@@ -24,7 +24,7 @@ const navigation = computed(() => [
           <span class="ml-3 font-bold text-lg">Graph Demo</span>
         </div>
 
-        <div class="hidden md:flex space-x-6">
+        <div class="flex flex-wrap space-x-6">
           <a
             v-for="item in navigation"
             :key="item.name"
