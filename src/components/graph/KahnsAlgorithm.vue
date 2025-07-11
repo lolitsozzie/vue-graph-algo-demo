@@ -10,25 +10,25 @@
         Next
       </button>
     </div>
-    <p class="mt-2 text-sm text-gray-500">Click a node to start DFS traversal</p>
+    <p class="mt-2 text-sm text-gray-500">Kahn's Algorithm Traversal</p>
 
     <div class="absolute top-4 left-4 bg-white shadow rounded px-4 py-2 text-sm text-gray-800 max-w-[16rem]">
-      <h2 class="font-bold mb-1">Stack</h2>
+      <h2 class="font-bold mb-1">Queue</h2>
       <div class="flex gap-2 flex-wrap">
         <div
-          v-for="id in stackDisplay"
-          :key="'s-' + id"
-          class="px-2 py-1 bg-purple-100 text-purple-800 rounded"
+          v-for="id in queueDisplay"
+          :key="'q-' + id"
+          class="px-2 py-1 bg-blue-100 text-blue-800 rounded"
         >
           {{ id }}
         </div>
       </div>
 
-      <h2 class="font-bold mt-4 mb-1">Visited</h2>
+      <h2 class="font-bold mt-4 mb-1">Topological Order</h2>
       <div class="flex gap-2 flex-wrap">
         <div
-          v-for="id in visitedDisplay"
-          :key="'v-' + id"
+          v-for="id in topoOrderDisplay"
+          :key="'t-' + id"
           class="px-2 py-1 bg-green-100 text-green-800 rounded"
         >
           {{ id }}
@@ -43,37 +43,57 @@ import { ref, onMounted, computed } from 'vue'
 import * as d3 from 'd3'
 
 const svgRef = ref(null)
-const dfsSteps = ref([])
+const kahnSteps = ref([])
 const currentStep = ref(-1)
 
-const stackDisplay = computed(() => {
-  const step = dfsSteps.value[currentStep.value]
-  return step?.stack || []
+const queueDisplay = computed(() => {
+  const step = kahnSteps.value[currentStep.value]
+  return step?.queue || []
 })
 
-const visitedDisplay = computed(() => {
-  const step = dfsSteps.value[currentStep.value]
-  return step?.visited || []
+const topoOrderDisplay = computed(() => {
+  const step = kahnSteps.value[currentStep.value]
+  return step?.order || []
 })
 
-let nodes, links, nodeEls, labelEls, simulation, adjList = {}
+let nodes, links, nodeEls, labelEls, simulation, stepIndex = 0
 
-function runDFS(adjList, startId) {
-  const visited = new Set()
-  const stack = [startId]
+function runKahnsAlgorithm(nodes, links) {
+  const inDegree = {}
+  const adjList = {}
+  const queue = []
+  const order = []
   const steps = []
 
-  while (stack.length > 0) {
-    const current = stack.pop()
-    steps.push({ visited: [...visited], current, stack: [...stack] })
+  for (const node of nodes) {
+    inDegree[node.id] = 0
+    adjList[node.id] = []
+  }
 
-    if (!visited.has(current)) {
-      visited.add(current)
-      const neighbors = [...(adjList[current] || [])].reverse()
-      for (const neighbor of neighbors) {
-        if (!visited.has(neighbor)) {
-          stack.push(neighbor)
-        }
+  for (const link of links) {
+    const sourceId = String(link.source)
+    const targetId = String(link.target)
+    if (!adjList[sourceId]) adjList[sourceId] = []
+    if (!(targetId in inDegree)) continue
+    inDegree[targetId]++
+    adjList[sourceId].push(targetId)
+  }
+
+  for (const node of nodes) {
+    if (inDegree[node.id] === 0) {
+      queue.push(node.id)
+    }
+  }
+
+  while (queue.length > 0) {
+    const current = queue.shift()
+    order.push(current)
+    steps.push({ current, queue: [...queue], order: [...order] })
+
+    for (const neighbor of adjList[current]) {
+      inDegree[neighbor]--
+      if (inDegree[neighbor] === 0) {
+        queue.push(neighbor)
       }
     }
   }
@@ -85,54 +105,51 @@ function highlightStep(step) {
   if (!step || !nodeEls) return
 
   nodeEls.attr('fill', d => {
-    if (d.id === step.current) return '#facc15' // yellow
-    if (step.visited.includes(d.id)) return '#3b82f6' // blue
-    return '#d1d5db' // gray
+    if (d.id === step.current) return '#facc15'
+    if (step.order.includes(d.id)) return '#3b82f6'
+    return '#d1d5db'
   })
 }
 
 function nextStep() {
-  if (currentStep.value < dfsSteps.value.length - 1) {
-    currentStep.value++
-    highlightStep(dfsSteps.value[currentStep.value])
+  if (stepIndex < kahnSteps.value.length - 1) {
+    stepIndex++
+    currentStep.value = stepIndex
+    highlightStep(kahnSteps.value[stepIndex])
   }
 }
 
 function prevStep() {
-  if (currentStep.value > 0) {
-    currentStep.value--
-    highlightStep(dfsSteps.value[currentStep.value])
+  if (stepIndex > 0) {
+    stepIndex--
+    currentStep.value = stepIndex
+    highlightStep(kahnSteps.value[stepIndex])
   }
 }
 
 onMounted(() => {
   nodes = [
-    { id: '1' }, { id: '2' }, { id: '3' }, { id: '4' },
-    { id: '5' }, { id: '6' }, { id: '7' }, { id: '8' },
-    { id: '9' }, { id: '10' }, { id: '11' }, { id: '12' }
+    { id: 'A' }, { id: 'B' }, { id: 'C' }, { id: 'D' },
+    { id: 'E' }, { id: 'F' }, { id: 'G' }, { id: 'H' },
+    { id: 'I' }, { id: 'J' }
   ]
 
   links = [
-    { source: '1', target: '2' },
-    { source: '1', target: '3' },
-    { source: '2', target: '4' },
-    { source: '2', target: '5' },
-    { source: '3', target: '6' },
-    { source: '3', target: '7' },
-    { source: '4', target: '8' },
-    { source: '5', target: '9' },
-    { source: '6', target: '10' },
-    { source: '7', target: '11' },
-    { source: '11', target: '12' }
+    { source: 'A', target: 'C' },
+    { source: 'B', target: 'C' },
+    { source: 'C', target: 'E' },
+    { source: 'D', target: 'F' },
+    { source: 'E', target: 'F' },
+    { source: 'F', target: 'G' },
+    { source: 'G', target: 'H' },
+    { source: 'H', target: 'I' },
+    { source: 'I', target: 'J' }
   ]
 
-  for (const link of links) {
-    const [a, b] = [link.source, link.target]
-    if (!adjList[a]) adjList[a] = []
-    if (!adjList[b]) adjList[b] = []
-    adjList[a].push(b)
-    adjList[b].push(a)
-  }
+  kahnSteps.value = runKahnsAlgorithm(nodes, links)
+  stepIndex = 0
+  currentStep.value = 0
+  highlightStep(kahnSteps.value[0])
 
   const svg = d3.select(svgRef.value)
   const { width, height } = svgRef.value.getBoundingClientRect()
@@ -142,8 +159,8 @@ onMounted(() => {
   }))
 
   simulation = d3.forceSimulation(nodes)
-    .force('link', d3.forceLink(links).id(d => d.id).distance(100))
-    .force('charge', d3.forceManyBody().strength(-300))
+    .force('link', d3.forceLink(links).id(d => d.id).distance(120))
+    .force('charge', d3.forceManyBody().strength(-250))
     .force('center', d3.forceCenter(width / 2, height / 2))
 
   zoomGroup.append('g')
@@ -152,6 +169,19 @@ onMounted(() => {
     .data(links)
     .join('line')
     .attr('stroke-width', 2)
+    .attr('marker-end', 'url(#arrow)')
+
+  zoomGroup.append('defs').append('marker')
+    .attr('id', 'arrow')
+    .attr('viewBox', '0 -5 10 10')
+    .attr('refX', 20)
+    .attr('refY', 0)
+    .attr('markerWidth', 6)
+    .attr('markerHeight', 6)
+    .attr('orient', 'auto')
+    .append('path')
+    .attr('d', 'M0,-5L10,0L0,5')
+    .attr('fill', '#aaa')
 
   nodeEls = zoomGroup.append('g')
     .attr('stroke', '#fff')
@@ -162,11 +192,6 @@ onMounted(() => {
     .attr('r', 10)
     .attr('fill', '#d1d5db')
     .call(drag(simulation))
-    .on('click', (event, d) => {
-      dfsSteps.value = runDFS(adjList, d.id)
-      currentStep.value = 0
-      highlightStep(dfsSteps.value[0])
-    })
 
   labelEls = zoomGroup.append('g')
     .selectAll('text')
@@ -193,43 +218,22 @@ onMounted(() => {
       .attr('y', d => d.y)
   })
 
-  setTimeout(() => {
-    const bounds = zoomGroup.node().getBBox()
-    const fullWidth = svgRef.value.clientWidth
-    const fullHeight = svgRef.value.clientHeight
-
-    const scale = 0.9 / Math.max(bounds.width / fullWidth, bounds.height / fullHeight)
-    const translateX = (fullWidth - bounds.width * scale) / 2 - bounds.x * scale
-    const translateY = (fullHeight - bounds.height * scale) / 2 - bounds.y * scale
-
-    svg.transition().duration(500).call(
-      d3.zoom().transform,
-      d3.zoomIdentity.translate(translateX, translateY).scale(scale)
-    )
-  }, 500)
-
   function drag(simulation) {
-    function dragstarted(event, d) {
-      if (!event.active) simulation.alphaTarget(0.3).restart()
-      d.fx = d.x
-      d.fy = d.y
-    }
-
-    function dragged(event, d) {
-      d.fx = event.x
-      d.fy = event.y
-    }
-
-    function dragended(event, d) {
-      if (!event.active) simulation.alphaTarget(0)
-      d.fx = null
-      d.fy = null
-    }
-
     return d3.drag()
-      .on('start', dragstarted)
-      .on('drag', dragged)
-      .on('end', dragended)
+      .on('start', (event, d) => {
+        if (!event.active) simulation.alphaTarget(0.3).restart()
+        d.fx = d.x
+        d.fy = d.y
+      })
+      .on('drag', (event, d) => {
+        d.fx = event.x
+        d.fy = event.y
+      })
+      .on('end', (event, d) => {
+        if (!event.active) simulation.alphaTarget(0)
+        d.fx = null
+        d.fy = null
+      })
   }
 })
 </script>
