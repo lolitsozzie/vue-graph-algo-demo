@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import graph from '@/components/graph/BreadthFirst.vue';
+import KahnsAlgorithm from '@/components/graph/KahnsAlgorithm.vue';
 </script>
 
 <template>
@@ -8,6 +8,6 @@ import graph from '@/components/graph/BreadthFirst.vue';
         Kahn’s Algorithm
     </h2>
     <div class="w-full h-[40rem] flex items-center justify-center bg-gray-100 rounded-md">
-        <graph />
+        <KahnsAlgorithm />
     </div>
 </template>
